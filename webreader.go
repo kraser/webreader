@@ -1,21 +1,23 @@
 package webreader
 
 import (
-	"fmt"
+	//"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	//"os"
 	//"github.com/opesun/goquery"
 )
 
-type RequestOptions struct {
-	Method     string
-	PosrFields map[string]string
+type Dyad struct {
+	KeyName string
+	Value   string
 }
 
+var cookieHandler = new(Cookies)
+var currentUrl string
 var client http.Client
 var myReq http.Request
-
-//var request http.Request
 
 func errorHandle(e error) {
 	if e != nil {
@@ -23,34 +25,33 @@ func errorHandle(e error) {
 	}
 }
 
-func CheckRequestUrl(response *http.Response) {
+func CheckRequestUrl(response *http.Response) string {
 
 	body, err := ioutil.ReadAll(response.Body)
 	errorHandle(err)
-	defer response.Body.Close()
-	fmt.Println(string(body))
+
+	return string(body)
 }
 
-func PrepareRequestParameters(url string, options RequestOptions) (*http.Request, error) {
-	if len(options.Method) == 0 {
-		options.Method = "get"
-	}
-	myReq, err := http.NewRequest(options.Method, url, nil)
-	fmt.Println(myReq.Method)
-	fmt.Println(myReq.URL)
+func PrepareRequestParameters() (*http.Request, error) {
+	myReq, err := http.NewRequest(currentOptions.Method, currentUrl, nil)
 	errorHandle(err)
-	myReq.Header.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+	log.Println("HEADER_ACCEPT", currentOptions.HttpHeaders["Accept"].Value)
+	myReq.Header.Add("Accept", currentOptions.HttpHeaders["Accept"].Value)
 	return myReq, err
 }
 
-func DoRequest(url string, options RequestOptions) string {
-	fmt.Println(url)
+func DoRequest(url string, options *RequestOptions) string {
+	currentUrl = url
+	processOptions()
+	req, err := PrepareRequestParameters()
 	client := &http.Client{}
-	req, err := PrepareRequestParameters(url, options)
-	fmt.Println(req.Method)
-	fmt.Println("URL", req.URL)
+
 	resp, err := client.Do(req)
 	errorHandle(err)
-	CheckRequestUrl(resp)
-	return "test"
+	defer resp.Body.Close()
+
+	cookieHandler.SaveCookies(resp)
+
+	return CheckRequestUrl(resp)
 }
