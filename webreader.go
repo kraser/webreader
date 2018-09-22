@@ -1,7 +1,9 @@
 package webreader
 
 import (
+	"io"
 	"io/ioutil"
+
 	//"log"
 	"logger"
 	"net/http"
@@ -12,10 +14,21 @@ type Dyad struct {
 	Value   string
 }
 
+type RequestResult struct {
+	Text   string
+	Stream io.Reader
+}
+
+func (res *RequestResult) Reset() {
+	res.Text = ""
+	res.Stream = nil
+}
+
 var cookieHandler = new(Cookies)
 var currentUrl string
 var client http.Client
 var myReq http.Request
+var result = new(RequestResult)
 
 func errorHandle(e error) {
 	if e != nil {
@@ -23,7 +36,7 @@ func errorHandle(e error) {
 	}
 }
 
-func CheckRequestUrl(response *http.Response) string {
+func processResponse(response *http.Response) string {
 	logger.Debug("RESPONSE_HEADERS")
 	for name, value := range response.Header {
 		logger.Debug(name, value)
@@ -31,6 +44,9 @@ func CheckRequestUrl(response *http.Response) string {
 
 	body, err := ioutil.ReadAll(response.Body)
 	errorHandle(err)
+
+	//result.Stream = response.Body
+	//result.Text = string(body)
 
 	return string(body)
 }
@@ -55,6 +71,8 @@ func PrepareRequestParameters() (*http.Request, error) {
 }
 
 func DoRequest(url string, options *RequestOptions) string {
+	result.Reset()
+
 	currentUrl = url
 	processOptions()
 	req, err := PrepareRequestParameters()
@@ -66,38 +84,5 @@ func DoRequest(url string, options *RequestOptions) string {
 
 	cookieHandler.SaveCookies(resp)
 
-	return CheckRequestUrl(resp)
+	return processResponse(resp)
 }
-
-/*
-Cache-Control
-no-store, no-cache, must-reval…te, post-check=0, pre-check=0
-Connection
-keep-alive
-Content-Encoding
-gzip
-Content-Type
-text/html; UTF-8;charset=UTF-8
-Date
-Sun, 09 Sep 2018 08:51:55 GMT
-Expires
-Thu, 19 Nov 1981 08:52:00 GMT
-Keep-Alive
-timeout=30
-Pragma
-no-cache
-Server
-nginx-reuseport/1.13.4
-Set-Cookie
-CMS_SESSION=8b0f9f070aa7ecc72d…55 GMT; Max-Age=36000; path=/
-Set-Cookie
-authorized=989ff9c4541fd56fe2d…:55 GMT; Max-Age=3600; path=/
-Set-Cookie
-user=deleted; expires=Thu, 01-…:00:01 GMT; Max-Age=0; path=/
-Transfer-Encoding
-chunked
-Vary
-Accept-Encoding
-X-Powered-By
-PHP/5.6.30
-*/
