@@ -7,6 +7,7 @@ type RequestOptions struct {
 	PostFields  map[string]Dyad
 	CookieFile  string
 	HttpHeaders map[string]Dyad
+	UserAgent   string
 }
 
 var currentOptions = new(RequestOptions)
@@ -19,6 +20,12 @@ func (options *RequestOptions) AddPostField(fieldName string, fieldValue string)
 func (options *RequestOptions) AddHeader(headerName string, headerValue string) {
 	header := Dyad{KeyName: headerName, Value: headerValue}
 	options.HttpHeaders[headerName] = header
+}
+
+func (options *RequestOptions) AddHeaders(headers map[string]string) {
+	for name, value := range headers {
+		options.AddHeader(name, value)
+	}
 }
 
 func GetOptions() *RequestOptions {

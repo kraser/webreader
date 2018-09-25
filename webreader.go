@@ -56,6 +56,9 @@ func PrepareRequestParameters() (*http.Request, error) {
 	errorHandle(err)
 	logger.Debug("REQUEST_HEADERS")
 	myReq.Header.Add("Host", myReq.Host)
+	logger.Debug("Host", myReq.Host)
+	myReq.Header.Add("User-Agent", currentOptions.UserAgent)
+	logger.Debug("User-Agent", currentOptions.UserAgent)
 	for _, value := range currentOptions.HttpHeaders {
 		logger.Debug(value.KeyName, value.Value)
 		myReq.Header.Add(value.KeyName, value.Value)
