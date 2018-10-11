@@ -1,6 +1,10 @@
 // options
 package webreader
 
+import (
+	log "logger"
+)
+
 type RequestOptions struct {
 	Url         string
 	Method      string
@@ -19,11 +23,13 @@ func (options *RequestOptions) AddPostField(fieldName string, fieldValue string)
 }
 
 func (options *RequestOptions) AddHeader(headerName string, headerValue string) {
+	log.Debug(headerName+":", headerValue)
 	header := Dyad{KeyName: headerName, Value: headerValue}
 	options.HttpHeaders[headerName] = header
 }
 
 func (options *RequestOptions) AddHeaders(headers map[string]string) {
+	log.Debug("HEADERS")
 	for name, value := range headers {
 		options.AddHeader(name, value)
 	}
