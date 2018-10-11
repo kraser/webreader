@@ -8,6 +8,7 @@ type RequestOptions struct {
 	CookieFile  string
 	HttpHeaders map[string]Dyad
 	UserAgent   string
+	Trials      int8
 }
 
 var currentOptions = new(RequestOptions)

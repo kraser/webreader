@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 
 	//"log"
+	"errors"
 	"logger"
 	"net/http"
 )
@@ -37,10 +38,13 @@ func errorHandle(e error) {
 }
 
 func processResponse(response *http.Response) string {
+	logger.Debug("RESPONSE_STATUS:", response.StatusCode)
+	logger.Debug("RESPONSE:", response.Status)
 	logger.Debug("RESPONSE_HEADERS")
 	for name, value := range response.Header {
 		logger.Debug(name, value)
 	}
+	cookieHandler.SaveCookies(response)
 
 	body, err := ioutil.ReadAll(response.Body)
 	errorHandle(err)
@@ -74,19 +78,34 @@ func PrepareRequestParameters() (*http.Request, error) {
 	return myReq, err
 }
 
-func DoRequest(url string, options *RequestOptions) string {
+func DoRequest(url string, options *RequestOptions) (string, error) {
 	result.Reset()
 
 	currentUrl = url
 	processOptions()
 	req, err := PrepareRequestParameters()
-	client := &http.Client{}
-
-	resp, err := client.Do(req)
 	errorHandle(err)
-	defer resp.Body.Close()
+	client := &http.Client{}
+	toDoReq := true
+	var html string
+	var respErr error = nil
+	var trials int8
+	trials = 0
+	for toDoReq {
+		logger.Debug("TRY: ", trials)
+		resp, err := client.Do(req)
+		errorHandle(err)
+		defer resp.Body.Close()
+		if resp.StatusCode != 200 {
+			respErr = errors.New(resp.Status)
+			logger.Error(respErr)
+			trials++
+			toDoReq = trials <= options.Trials
+		} else {
+			toDoReq = false
+			html = processResponse(resp)
+		}
+	}
 
-	cookieHandler.SaveCookies(resp)
-
-	return processResponse(resp)
+	return html, respErr
 }
