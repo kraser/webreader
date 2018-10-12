@@ -2,6 +2,7 @@
 package webreader
 
 import (
+	errs "errorshandler"
 	"logger"
 	"net/http"
 	"os"
@@ -18,7 +19,7 @@ func (handler *Cookies) SaveCookies(resp *http.Response) {
 	logger.Debug("COOKIEFILE", currentOptions.CookieFile)
 	if len(handler.CookiesFileName) != 0 {
 		cookiesFileHandler, err := os.OpenFile(currentOptions.CookieFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
-		errorHandle(err)
+		errs.ErrorHandle(err)
 		defer cookiesFileHandler.Close()
 		cookiesFileHandler.Truncate(0)
 		logger.Debug("RESPONSE_COOKIES")

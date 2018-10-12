@@ -1,6 +1,7 @@
 package webreader
 
 import (
+	errs "errorshandler"
 	"io"
 	"io/ioutil"
 
@@ -31,12 +32,6 @@ var client http.Client
 var myReq http.Request
 var result = new(RequestResult)
 
-func errorHandle(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
 func processResponse(response *http.Response) string {
 	logger.Debug("RESPONSE_STATUS:", response.StatusCode)
 	logger.Debug("RESPONSE:", response.Status)
@@ -47,7 +42,7 @@ func processResponse(response *http.Response) string {
 	cookieHandler.SaveCookies(response)
 
 	body, err := ioutil.ReadAll(response.Body)
-	errorHandle(err)
+	errs.ErrorHandle(err)
 
 	//result.Stream = response.Body
 	//result.Text = string(body)
@@ -57,7 +52,7 @@ func processResponse(response *http.Response) string {
 
 func PrepareRequestParameters() (*http.Request, error) {
 	myReq, err := http.NewRequest(currentOptions.Method, currentUrl, nil)
-	errorHandle(err)
+	errs.ErrorHandle(err)
 	logger.Debug("REQUEST_HEADERS")
 	myReq.Header.Add("Host", myReq.Host)
 	logger.Debug("Host", myReq.Host)
@@ -84,7 +79,7 @@ func DoRequest(url string, options *RequestOptions) (string, error) {
 	currentUrl = url
 	processOptions()
 	req, err := PrepareRequestParameters()
-	errorHandle(err)
+	errs.ErrorHandle(err)
 	client := &http.Client{}
 	toDoReq := true
 	var html string
@@ -94,7 +89,7 @@ func DoRequest(url string, options *RequestOptions) (string, error) {
 	for toDoReq {
 		logger.Debug("TRY: ", trials)
 		resp, err := client.Do(req)
-		errorHandle(err)
+		errs.ErrorHandle(err)
 		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
 			respErr = errors.New(resp.Status)
