@@ -1,12 +1,21 @@
 // options
 package webreader
 
+import (
+	log "logger"
+	"math/rand"
+	"time"
+)
+
 type RequestOptions struct {
 	Url         string
 	Method      string
 	PostFields  map[string]Dyad
 	CookieFile  string
 	HttpHeaders map[string]Dyad
+	UserAgent   string
+	Trials      int
+	Interval    time.Duration
 }
 
 var currentOptions = new(RequestOptions)
@@ -17,8 +26,21 @@ func (options *RequestOptions) AddPostField(fieldName string, fieldValue string)
 }
 
 func (options *RequestOptions) AddHeader(headerName string, headerValue string) {
+	log.Debug(headerName+":", headerValue)
 	header := Dyad{KeyName: headerName, Value: headerValue}
 	options.HttpHeaders[headerName] = header
+}
+
+func (options *RequestOptions) AddHeaders(headers map[string]string) {
+	log.Debug("HEADERS")
+	for name, value := range headers {
+		options.AddHeader(name, value)
+	}
+}
+
+func (options *RequestOptions) SetRandUserAgent() {
+	options.UserAgent = useragents[rand.Intn(len(useragents))]
+	log.Info("UA:", options.UserAgent)
 }
 
 func GetOptions() *RequestOptions {
