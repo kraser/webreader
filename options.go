@@ -3,6 +3,8 @@ package webreader
 
 import (
 	log "logger"
+	"math/rand"
+	"time"
 )
 
 type RequestOptions struct {
@@ -12,7 +14,8 @@ type RequestOptions struct {
 	CookieFile  string
 	HttpHeaders map[string]Dyad
 	UserAgent   string
-	Trials      int8
+	Trials      int
+	Interval    time.Duration
 }
 
 var currentOptions = new(RequestOptions)
@@ -33,6 +36,11 @@ func (options *RequestOptions) AddHeaders(headers map[string]string) {
 	for name, value := range headers {
 		options.AddHeader(name, value)
 	}
+}
+
+func (options *RequestOptions) SetRandUserAgent() {
+	options.UserAgent = useragents[rand.Intn(len(useragents))]
+	log.Info("UA:", options.UserAgent)
 }
 
 func GetOptions() *RequestOptions {
