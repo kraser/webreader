@@ -4,6 +4,7 @@ package webreader
 import (
 	log "logger"
 	"math/rand"
+	"net/http"
 	"time"
 )
 
@@ -16,6 +17,7 @@ type RequestOptions struct {
 	UserAgent   string
 	Trials      int
 	Interval    time.Duration
+	Preprocess  func(req *http.Request)
 }
 
 var currentOptions = new(RequestOptions)

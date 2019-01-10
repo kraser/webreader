@@ -1,13 +1,11 @@
 package webreader
 
 import (
-	"errors"
 	errs "errorshandler"
 	"io"
 	"io/ioutil"
 	"logger"
 	"net/http"
-	"strings"
 	"time"
 )
 
@@ -59,14 +57,9 @@ func PrepareRequestParameters() (*http.Request, error) {
 		logger.Debug(value.KeyName, value.Value)
 		myReq.Header.Add(value.KeyName, value.Value)
 	}
-	if len(cookieHandler.Cookies) == 0 {
-		logger.Debug("NO_REQUEST_COOKIES")
-	} else {
-		logger.Debug("REQUEST_COOKIES")
-		for _, cookie := range cookieHandler.Cookies {
-			logger.Debug(cookie.String())
-		}
-	}
+
+	currentOptions.Preprocess(myReq)
+
 	return myReq, err
 }
 
@@ -79,18 +72,9 @@ func DoRequest(url string, options *RequestOptions) (string, error) {
 	errs.ErrorHandle(err)
 	client := &http.Client{}
 
-	//вынести в ParserHandleError
-	if len(req.Cookies()) == 0 {
-		logger.Debug("NO_REQUEST_COOKIES")
-	} else {
-		logger.Debug("REQUEST_COOKIES")
-		myReq.Header.Del("Cookie")
-	}
-	//вынести в ParserHandleError
-
 	toDoReq := true
 	var html string
-	var respErr error = nil
+	var reqErr error = nil
 	var trials int
 	trials = 0
 	for toDoReq {
@@ -100,8 +84,8 @@ func DoRequest(url string, options *RequestOptions) (string, error) {
 		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
 			ResponseHeaders(resp)
-			respErr = errors.New(strings.Join([]string{resp.Status, url}, " AT "))
-			logger.Error(respErr)
+			reqErr = NewRequestError(resp, url)
+			logger.Error(reqErr)
 			trials++
 			toDoReq = trials <= options.Trials
 
@@ -117,7 +101,7 @@ func DoRequest(url string, options *RequestOptions) (string, error) {
 		}
 	}
 
-	return html, respErr
+	return html, reqErr
 }
 
 func ResponseHeaders(response *http.Response) {
