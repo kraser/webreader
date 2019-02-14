@@ -1,14 +1,14 @@
 package webreader
 
 import (
+	"errors"
 	errs "errorshandler"
 	"io"
 	"io/ioutil"
-
-	//"log"
-	"errors"
 	"logger"
 	"net/http"
+	"strings"
+	"time"
 )
 
 type Dyad struct {
@@ -44,9 +44,6 @@ func processResponse(response *http.Response) string {
 	body, err := ioutil.ReadAll(response.Body)
 	errs.ErrorHandle(err)
 
-	//result.Stream = response.Body
-	//result.Text = string(body)
-
 	return string(body)
 }
 
@@ -62,14 +59,7 @@ func PrepareRequestParameters() (*http.Request, error) {
 		logger.Debug(value.KeyName, value.Value)
 		myReq.Header.Add(value.KeyName, value.Value)
 	}
-	if len(cookieHandler.Cookies) == 0 {
-		logger.Debug("NO_REQUEST_COOKIES")
-	} else {
-		logger.Debug("REQUEST_COOKIES")
-		for _, cookie := range cookieHandler.Cookies {
-			logger.Debug(cookie.String())
-		}
-	}
+	currentOptions.PrepareRequest(myReq)
 	return myReq, err
 }
 
@@ -81,10 +71,11 @@ func DoRequest(url string, options *RequestOptions) (string, error) {
 	req, err := PrepareRequestParameters()
 	errs.ErrorHandle(err)
 	client := &http.Client{}
+
 	toDoReq := true
 	var html string
 	var respErr error = nil
-	var trials int8
+	var trials int
 	trials = 0
 	for toDoReq {
 		logger.Debug("TRY: ", trials)
@@ -92,10 +83,18 @@ func DoRequest(url string, options *RequestOptions) (string, error) {
 		errs.ErrorHandle(err)
 		defer resp.Body.Close()
 		if resp.StatusCode != 200 {
-			respErr = errors.New(resp.Status)
+			ResponseHeaders(resp)
+			respErr = errors.New(strings.Join([]string{resp.Status, url}, " AT "))
 			logger.Error(respErr)
 			trials++
 			toDoReq = trials <= options.Trials
+
+			//вынести в ParserHandleError
+			currentOptions.HandleRequestError(resp, req, currentOptions)
+
+			//вынести в ParserHandleError
+
+			time.Sleep(options.Interval * time.Second)
 		} else {
 			toDoReq = false
 			html = processResponse(resp)
@@ -103,4 +102,11 @@ func DoRequest(url string, options *RequestOptions) (string, error) {
 	}
 
 	return html, respErr
+}
+
+func ResponseHeaders(response *http.Response) {
+	for key, headers := range response.Header {
+		logger.Debug(key)
+		logger.Debug(headers)
+	}
 }
