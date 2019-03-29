@@ -1,5 +1,5 @@
 // options
-package webreader
+package gocurl
 
 import (
 	log "logger"

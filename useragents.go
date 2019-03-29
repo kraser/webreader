@@ -1,5 +1,5 @@
 // useragents
-package webreader
+package gocurl
 
 var useragents = [17]string{
 	"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:61.0) Gecko/20100101 Firefox/61.0",

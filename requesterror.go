@@ -1,5 +1,5 @@
 // requesterror
-package webreader
+package gocurl
 
 import (
 	"errors"

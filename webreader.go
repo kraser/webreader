@@ -1,4 +1,4 @@
-package webreader
+package gocurl
 
 import (
 	errs "errorshandler"
