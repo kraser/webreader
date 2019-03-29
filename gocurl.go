@@ -1,12 +1,13 @@
 package gocurl
 
 import (
-	errs "errorshandler"
 	"io"
 	"io/ioutil"
 	"logger"
 	"net/http"
 	"time"
+
+	errs "github.com/kraser/errorshandler"
 )
 
 type Dyad struct {

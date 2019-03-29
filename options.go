@@ -22,6 +22,8 @@ type RequestOptions struct {
 
 var currentOptions = new(RequestOptions)
 
+/* Methods *RequestOptions*/
+//Adds new field to POST-parameters
 func (options *RequestOptions) AddPostField(fieldName string, fieldValue string) {
 	field := Dyad{KeyName: fieldName, Value: fieldValue}
 	options.PostFields[fieldName] = field
@@ -44,6 +46,8 @@ func (options *RequestOptions) SetRandUserAgent() {
 	options.UserAgent = useragents[rand.Intn(len(useragents))]
 	log.Info("UA:", options.UserAgent)
 }
+
+/* Methods *RequestOptions*/
 
 func GetOptions() *RequestOptions {
 	currentOptions.PostFields = make(map[string]Dyad)
