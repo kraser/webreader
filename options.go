@@ -48,6 +48,7 @@ func (options *RequestOptions) SetRandUserAgent() {
 func GetOptions() *RequestOptions {
 	currentOptions.PostFields = make(map[string]Dyad)
 	currentOptions.HttpHeaders = make(map[string]Dyad)
+	currentOptions.SetRandUserAgent()
 	return currentOptions
 }
 
