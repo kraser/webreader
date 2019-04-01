@@ -4,35 +4,31 @@ package gocurl
 import (
 	log "logger"
 	"math/rand"
-	"net/http"
-	"time"
+	//"net/http"
+	//"time"
 )
 
 type RequestOptions struct {
 	Url         string
-	Method      string
-	PostFields  map[string]Dyad
+	method      string
+	PostFields  map[string]string
 	CookieFile  string
-	HttpHeaders map[string]Dyad
+	HttpHeaders map[string]string
 	UserAgent   string
 	Trials      int
-	Interval    time.Duration
-	Preprocess  func(req *http.Request)
+	Interval    float64
+	//Preprocess  func(req *http.Request)
 }
 
-var currentOptions = new(RequestOptions)
-
-/* Methods *RequestOptions*/
+/* Methods *RequestOptions start */
 //Adds new field to POST-parameters
 func (options *RequestOptions) AddPostField(fieldName string, fieldValue string) {
-	field := Dyad{KeyName: fieldName, Value: fieldValue}
-	options.PostFields[fieldName] = field
+	options.PostFields[fieldName] = fieldValue
 }
 
 func (options *RequestOptions) AddHeader(headerName string, headerValue string) {
 	log.Debug(headerName+":", headerValue)
-	header := Dyad{KeyName: headerName, Value: headerValue}
-	options.HttpHeaders[headerName] = header
+	options.HttpHeaders[headerName] = headerValue
 }
 
 func (options *RequestOptions) AddHeaders(headers map[string]string) {
@@ -47,21 +43,24 @@ func (options *RequestOptions) SetRandUserAgent() {
 	log.Info("UA:", options.UserAgent)
 }
 
-/* Methods *RequestOptions*/
-
-func GetOptions() *RequestOptions {
-	currentOptions.PostFields = make(map[string]Dyad)
-	currentOptions.HttpHeaders = make(map[string]Dyad)
-	currentOptions.SetRandUserAgent()
-	return currentOptions
+func (options *RequestOptions) SetMethod(method string) {
+	options.method = method
 }
 
-func processOptions() {
-	if len(currentOptions.Method) == 0 {
-		currentOptions.Method = "GET"
+func (options *RequestOptions) GetMethod() string {
+	if len(options.method) == 0 {
+		options.method = "GET"
 	}
+	return options.method
+}
 
-	if len(currentOptions.CookieFile) != 0 {
-		cookieHandler.SetCookieFileName(currentOptions.CookieFile)
-	}
+/* Methods *RequestOptions end */
+
+func GetOptions() *RequestOptions {
+	options := new(RequestOptions)
+	options.Interval = 0
+	options.PostFields = make(map[string]string)
+	options.HttpHeaders = make(map[string]string)
+	options.SetRandUserAgent()
+	return options
 }

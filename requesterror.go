@@ -17,11 +17,15 @@ type RequestError struct {
 	originalError error
 }
 
-func (e RequestError) Error() string {
+func (e *RequestError) Error() string {
 	return fmt.Sprintf("%v: %v", e.errTime, e.message)
 }
 
-func NewRequestError(pResponse *http.Response, url string) error {
+func (e *RequestError) IsNull() bool {
+	return e.originalError == nil
+}
+
+func NewRequestError(pResponse *http.Response, url string) RequestError {
 	return RequestError{
 		errTime:       time.Now(),
 		errCode:       pResponse.StatusCode,
@@ -29,9 +33,4 @@ func NewRequestError(pResponse *http.Response, url string) error {
 		url:           url,
 		originalError: errors.New(strings.Join([]string{pResponse.Status, url}, " AT ")),
 	}
-}
-
-func q() {
-	q := errors.New("ggg")
-	fmt.Println(q)
 }

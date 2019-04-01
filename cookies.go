@@ -10,15 +10,15 @@ import (
 
 type Cookies struct {
 	Cookies            []*http.Cookie
-	CookiesFileName    string
+	cookiesFileName    string
 	cookiesFileHandler *os.File
 }
 
-func (handler *Cookies) SaveCookies(resp *http.Response) {
-	handler.Cookies = resp.Cookies()
-	logger.Debug("COOKIEFILE", currentOptions.CookieFile)
-	if len(handler.CookiesFileName) != 0 {
-		cookiesFileHandler, err := os.OpenFile(currentOptions.CookieFile, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
+func (handler *Cookies) SaveCookies(cookies []*http.Cookie) {
+	handler.Cookies = cookies
+	logger.Debug("COOKIEFILE", handler.cookiesFileName)
+	if len(handler.cookiesFileName) != 0 {
+		cookiesFileHandler, err := os.OpenFile(handler.cookiesFileName, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0666)
 		errs.ErrorHandle(err)
 		defer cookiesFileHandler.Close()
 		cookiesFileHandler.Truncate(0)
@@ -31,5 +31,5 @@ func (handler *Cookies) SaveCookies(resp *http.Response) {
 }
 
 func (handler *Cookies) SetCookieFileName(fileName string) {
-	handler.CookiesFileName = fileName
+	handler.cookiesFileName = fileName
 }
