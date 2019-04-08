@@ -4,6 +4,8 @@ import (
 	"logger"
 
 	"net/http"
+	"net/url"
+	"sync"
 	"time"
 
 	errs "github.com/kraser/errorshandler"
@@ -18,6 +20,7 @@ type CurlClient struct {
 	result  *RequestResult
 	*Cookies
 	requestTime time.Time
+	httpClient  *http.Client
 }
 
 func GetCurl() *CurlClient {
@@ -31,7 +34,9 @@ func InitCurl(options *RequestOptions) *CurlClient {
 	client.Cookies = &Cookies{}
 	if len(options.CookieFile) != 0 {
 		client.Cookies.SetCookieFileName(options.CookieFile)
+		client.Cookies.ReadCookies()
 	}
+	client.httpClient = &http.Client{Jar: NewCurlJar()}
 
 	return client
 }
@@ -42,7 +47,6 @@ func (c *CurlClient) DoRequest(url string) string {
 	c.url = url
 	req, err := c.PrepareRequestParameters()
 	errs.ErrorHandle(err)
-	httpClient := &http.Client{}
 
 	toDoRequest := true
 	var requestErr RequestError
@@ -57,7 +61,7 @@ func (c *CurlClient) DoRequest(url string) string {
 		}
 		c.requestTime = time.Now()
 		logger.Debug("TRY: ", trials)
-		resp, err := httpClient.Do(req)
+		resp, err := c.httpClient.Do(req)
 		errs.ErrorHandle(err)
 		defer resp.Body.Close()
 		result, requestErr = c.processResponse(resp)
@@ -90,7 +94,8 @@ func (c *CurlClient) PrepareRequestParameters() (*http.Request, error) {
 		logger.Debug(name, value)
 		myReq.Header.Add(name, value)
 	}
-
+	//myReq.Header.Set("Cookie", c.Cookies.ActualRaws())
+	logger.Debug("COOKIES:", c.Cookies.ActualCookiesRaw())
 	return myReq, err
 }
 
@@ -111,103 +116,30 @@ func (c *CurlClient) processResponse(response *http.Response) (string, RequestEr
 }
 
 /* CurlClient methods */
-/*
-type Dyad struct {
-	KeyName string
-	Value   string
+
+type CurlJar struct {
+	lk      sync.Mutex
+	cookies map[string][]*http.Cookie
 }
 
-
-
-func (res *RequestResult) Reset() {
-	res.Text = ""
-	res.Stream = nil
+func NewCurlJar() *CurlJar {
+	curlJar := new(CurlJar)
+	curlJar.cookies = make(map[string][]*http.Cookie)
+	return curlJar
 }
 
-var cookieHandler = new(Cookies)
-var currentUrl string
-var client http.Client
-var myReq http.Request
-var result = new(RequestResult)
-
-func processResponse(response *http.Response) string {
-	logger.Debug("RESPONSE_STATUS:", response.StatusCode)
-	logger.Debug("RESPONSE:", response.Status)
-	logger.Debug("RESPONSE_HEADERS")
-	for name, value := range response.Header {
-		logger.Debug(name, value)
-	}
-	cookieHandler.SaveCookies(response)
-
-	body, err := ioutil.ReadAll(response.Body)
-	errs.ErrorHandle(err)
-
-	return string(body)
+// SetCookies handles the receipt of the cookies in a reply for the
+// given URL.  It may or may not choose to save the cookies, depending
+// on the jar's policy and implementation.
+func (jar *CurlJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
+	jar.lk.Lock()
+	jar.cookies[u.Host] = cookies
+	jar.lk.Unlock()
 }
 
-func PrepareRequestParameters() (*http.Request, error) {
-	myReq, err := http.NewRequest(currentOptions.Method, currentUrl, nil)
-	errs.ErrorHandle(err)
-	logger.Debug("REQUEST_HEADERS")
-	myReq.Header.Add("Host", myReq.Host)
-	logger.Debug("Host", myReq.Host)
-	myReq.Header.Add("User-Agent", currentOptions.UserAgent)
-	logger.Debug("User-Agent", currentOptions.UserAgent)
-	for _, value := range currentOptions.HttpHeaders {
-		logger.Debug(value.KeyName, value.Value)
-		myReq.Header.Add(value.KeyName, value.Value)
-	}
-
-	currentOptions.Preprocess(myReq)
-
-	return myReq, err
+// Cookies returns the cookies to send in a request for the given URL.
+// It is up to the implementation to honor the standard cookie use
+// restrictions such as in RFC 6265.
+func (jar *CurlJar) Cookies(u *url.URL) []*http.Cookie {
+	return jar.cookies[u.Host]
 }
-
-func DoRequest(url string, options *RequestOptions) (string, error) {
-	result.Reset()
-
-	currentUrl = url
-	options.Process()
-	req, err := PrepareRequestParameters()
-	errs.ErrorHandle(err)
-	client := &http.Client{}
-
-	toDoReq := true
-	var html string
-	var reqErr error = nil
-	var trials int
-	trials = 0
-	for toDoReq {
-		logger.Debug("TRY: ", trials)
-		resp, err := client.Do(req)
-		errs.ErrorHandle(err)
-		defer resp.Body.Close()
-		if resp.StatusCode != 200 {
-			ResponseHeaders(resp)
-			reqErr = NewRequestError(resp, url)
-			logger.Error(reqErr)
-			trials++
-			toDoReq = trials <= options.Trials
-
-			//вынести в ParserHandleError
-			currentOptions.SetRandUserAgent()
-			req.Header.Set("User-Agent", currentOptions.UserAgent)
-			//вынести в ParserHandleError
-
-			time.Sleep(options.Interval * time.Second)
-		} else {
-			toDoReq = false
-			html = processResponse(resp)
-		}
-	}
-
-	return html, reqErr
-}
-
-func ResponseHeaders(response *http.Response) {
-	for key, headers := range response.Header {
-		logger.Debug(key)
-		logger.Debug(headers)
-	}
-}
-*/
