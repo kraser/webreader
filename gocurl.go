@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	errs "github.com/kraser/errorshandler"
+	errs "errorshandler"
 )
 
 var client = new(CurlClient)
@@ -70,8 +70,8 @@ func (c *CurlClient) DoRequest(url string) string {
 			toDoRequest = trials <= c.Options.Trials
 
 			//вынести в ParserHandleError
-			c.Options.SetRandUserAgent()
-			req.Header.Set("User-Agent", c.Options.UserAgent)
+			//c.Options.SetRandUserAgent()
+			//req.Header.Set("User-Agent", c.Options.UserAgent)
 			//вынести в ParserHandleError
 
 		} else {

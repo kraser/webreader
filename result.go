@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	errs "github.com/kraser/errorshandler"
+	errs "errorshandler"
 )
 
 type RequestResult struct {

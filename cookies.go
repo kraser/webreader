@@ -100,10 +100,8 @@ func (handler *Cookies) ReadCookies() {
 
 func (handler *Cookies) ActualCookiesRaw() string {
 	cookies := make([]string, 0 /*len(handler.Cookies)*/)
-	for i, cookie := range handler.Cookies {
-		logger.Debug("STEP", i)
+	for _, cookie := range handler.Cookies {
 		var raw strings.Builder
-		logger.Debug(cookie)
 		raw.WriteString(cookie.Name)
 		raw.WriteString("=")
 		raw.WriteString(cookie.Value)
