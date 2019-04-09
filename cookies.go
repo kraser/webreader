@@ -69,7 +69,9 @@ func (handler *Cookies) CookieToString(cookie *http.Cookie) string {
 }
 
 func (handler *Cookies) ReadCookies() {
-
+	if _, err := os.Stat(handler.cookiesFileName); os.IsNotExist(err) {
+		return
+	}
 	data, err := ioutil.ReadFile(handler.cookiesFileName)
 	errs.ErrorHandle(err)
 	cookieStrings := strings.Split(string(data), "\n")
@@ -105,7 +107,6 @@ func (handler *Cookies) ActualCookiesRaw() string {
 		raw.WriteString(cookie.Name)
 		raw.WriteString("=")
 		raw.WriteString(cookie.Value)
-		//cookies[i] = raw.String()
 		cookies = append(cookies, raw.String())
 	}
 	return strings.Join(cookies, ";")
