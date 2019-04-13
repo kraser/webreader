@@ -94,8 +94,9 @@ func (c *CurlClient) PrepareRequestParameters() (*http.Request, error) {
 		logger.Debug(name, value)
 		myReq.Header.Add(name, value)
 	}
-	//myReq.Header.Set("Cookie", c.Cookies.ActualRaws())
 	logger.Debug("COOKIES:", c.Cookies.ActualCookiesRaw())
+	myReq.Header.Set("Cookie", c.Cookies.ActualCookiesRaw())
+
 	return myReq, err
 }
 
