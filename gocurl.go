@@ -4,8 +4,8 @@ import (
 	"logger"
 
 	"net/http"
-	"net/url"
-	"sync"
+	//"net/url"
+	//"sync"
 	"time"
 
 	errs "errorshandler"
@@ -48,12 +48,12 @@ func (c *CurlClient) DoRequest(url string) string {
 	req, err := c.PrepareRequestParameters()
 	errs.ErrorHandle(err)
 
-	toDoRequest := true
+	toContinue := true
 	var requestErr RequestError
 	var result string
 	var trials int
 	trials = 0
-	for toDoRequest {
+	for toContinue {
 		current := time.Now()
 		elapsed := current.Sub(c.requestTime).Seconds()
 		if elapsed < c.Options.Interval {
@@ -67,7 +67,7 @@ func (c *CurlClient) DoRequest(url string) string {
 		result, requestErr = c.processResponse(resp)
 		if requestErr.IsNull() {
 			trials++
-			toDoRequest = trials <= c.Options.Trials
+			toContinue = trials <= c.Options.Trials
 
 			//вынести в ParserHandleError
 			//c.Options.SetRandUserAgent()
@@ -75,7 +75,7 @@ func (c *CurlClient) DoRequest(url string) string {
 			//вынести в ParserHandleError
 
 		} else {
-			toDoRequest = false
+			toContinue = false
 		}
 	}
 
@@ -117,30 +117,3 @@ func (c *CurlClient) processResponse(response *http.Response) (string, RequestEr
 }
 
 /* CurlClient methods */
-
-type CurlJar struct {
-	lk      sync.Mutex
-	cookies map[string][]*http.Cookie
-}
-
-func NewCurlJar() *CurlJar {
-	curlJar := new(CurlJar)
-	curlJar.cookies = make(map[string][]*http.Cookie)
-	return curlJar
-}
-
-// SetCookies handles the receipt of the cookies in a reply for the
-// given URL.  It may or may not choose to save the cookies, depending
-// on the jar's policy and implementation.
-func (jar *CurlJar) SetCookies(u *url.URL, cookies []*http.Cookie) {
-	jar.lk.Lock()
-	jar.cookies[u.Host] = cookies
-	jar.lk.Unlock()
-}
-
-// Cookies returns the cookies to send in a request for the given URL.
-// It is up to the implementation to honor the standard cookie use
-// restrictions such as in RFC 6265.
-func (jar *CurlJar) Cookies(u *url.URL) []*http.Cookie {
-	return jar.cookies[u.Host]
-}

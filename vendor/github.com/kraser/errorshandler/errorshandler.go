@@ -1,10 +1,10 @@
 // errorshandler project errorshandler.go
 package errorshandler
-import (
-	log "logger"
-)
+
+//log "logger"
+
 func ErrorHandle(e error) {
-	log.Debug(e)
+	//log.Debug(e)
 	if e != nil {
 		panic(e)
 	}

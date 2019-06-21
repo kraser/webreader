@@ -1,4 +1,4 @@
-// result.go
+// result
 package gocurl
 
 import (
