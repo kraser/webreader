@@ -40,11 +40,13 @@ func InitCurl(options *RequestOptions) *CurlClient {
 		client.Cookies.ReadCookies()
 	}
 	client.httpClient = &http.Client{
-		Jar: NewCurlJar(),
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
+		Jar:     NewCurlJar(),
 		Timeout: options.GetTimeout(),
+	}
+	if !options.FollowLocation {
+		client.httpClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
 	}
 
 	return client

@@ -10,15 +10,16 @@ import (
 )
 
 type RequestOptions struct {
-	Url         string            //URL запроса
-	method      string            //Метод запроса
-	PostFields  map[string]string //Параметры POST-запроса
-	CookieFile  string            //Имя файла с Cookies
-	HttpHeaders map[string]string //Заголовки запроса
-	UserAgent   string            //User-Agent
-	Trials      int               //Кол-во попыток
-	Interval    float64           //Интервал между попытками
-	timeout     time.Duration     //Время ожидания ответа на запрос
+	Url            string            //URL запроса
+	method         string            //Метод запроса
+	PostFields     map[string]string //Параметры POST-запроса
+	CookieFile     string            //Имя файла с Cookies
+	HttpHeaders    map[string]string //Заголовки запроса
+	UserAgent      string            //User-Agent
+	Trials         int               //Кол-во попыток
+	Interval       float64           //Интервал между попытками
+	timeout        time.Duration     //Время ожидания ответа на запрос
+	FollowLocation bool              //Флаг управления редиректом на Location
 	//Preprocess  func(req *http.Request)
 }
 
@@ -100,5 +101,6 @@ func GetOptions() *RequestOptions {
 	options.HttpHeaders = make(map[string]string)
 	options.SetRandUserAgent()
 	options.SetTimeout("60s")
+	options.FollowLocation = false
 	return options
 }
