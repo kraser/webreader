@@ -27,6 +27,9 @@ func GetCurl() *CurlClient {
 	return client
 }
 
+/**
+ *Инициализация cURL клиента
+ */
 func InitCurl(options *RequestOptions) *CurlClient {
 	client.Options = options
 	client.requestTime, _ = time.Parse(time.RFC3339, "2006-01-02T15:04:05+07:00")
@@ -41,6 +44,7 @@ func InitCurl(options *RequestOptions) *CurlClient {
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse
 		},
+		Timeout: options.GetTimeout(),
 	}
 
 	return client
