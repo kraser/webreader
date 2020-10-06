@@ -27,6 +27,9 @@ func GetCurl() *CurlClient {
 	return client
 }
 
+/**
+ *Инициализация cURL клиента
+ */
 func InitCurl(options *RequestOptions) *CurlClient {
 	client.Options = options
 	client.requestTime, _ = time.Parse(time.RFC3339, "2006-01-02T15:04:05+07:00")
@@ -36,7 +39,13 @@ func InitCurl(options *RequestOptions) *CurlClient {
 		client.Cookies.SetCookieFileName(options.CookieFile)
 		client.Cookies.ReadCookies()
 	}
-	client.httpClient = &http.Client{Jar: NewCurlJar()}
+	client.httpClient = &http.Client{
+		Jar: NewCurlJar(),
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
+		Timeout: options.GetTimeout(),
+	}
 
 	return client
 }
@@ -103,6 +112,7 @@ func (c *CurlClient) PrepareRequestParameters() (*http.Request, error) {
 func (c *CurlClient) processResponse(response *http.Response) (string, RequestError) {
 	logger.Debug("RESPONSE_STATUS:", response.StatusCode)
 	logger.Debug("RESPONSE:", response.Status)
+	logger.Debug(response.Request.URL)
 	logger.Debug("RESPONSE_HEADERS")
 	for name, value := range response.Header {
 		logger.Debug(name, value)

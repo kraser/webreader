@@ -18,6 +18,7 @@ type RequestOptions struct {
 	UserAgent   string            //User-Agent
 	Trials      int               //Кол-во попыток
 	Interval    float64           //Интервал между попытками
+	timeout     time.Duration     //Время ожидания ответа на запрос
 	//Preprocess  func(req *http.Request)
 }
 
@@ -71,6 +72,21 @@ func (options *RequestOptions) GetMethod() string {
 	return options.method
 }
 
+/**
+ * Устанавливает время ожидания ответа на запрос
+ */
+func (options *RequestOptions) SetTimeout(timeout string) {
+	value, _ := time.ParseDuration(timeout)
+	options.timeout = value
+}
+
+/**
+ * Возвращает время ожидания ответа на запрос
+ */
+func (options *RequestOptions) GetTimeout() time.Duration {
+	return options.timeout
+}
+
 /* Methods *RequestOptions end */
 
 /**
@@ -83,5 +99,6 @@ func GetOptions() *RequestOptions {
 	options.PostFields = make(map[string]string)
 	options.HttpHeaders = make(map[string]string)
 	options.SetRandUserAgent()
+	options.SetTimeout("60s")
 	return options
 }
