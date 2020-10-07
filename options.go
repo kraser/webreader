@@ -6,6 +6,7 @@ import (
 	"math/rand"
 
 	//"net/http"
+	"strings"
 	"time"
 )
 
@@ -21,6 +22,16 @@ type RequestOptions struct {
 	timeout        time.Duration     //Время ожидания ответа на запрос
 	FollowLocation bool              //Флаг управления редиректом на Location
 	//Preprocess  func(req *http.Request)
+}
+
+var methods = [7]string{
+	"GET",     //Запрашивает данные из указанного ресурса
+	"POST",    // Отправляет данные для обработки указанному ресурсу
+	"HEAD",    // То же, что и GET, но возвращает только заголовки HTTP, а не тело документа
+	"PUT",     // Загружает представление указанного URI
+	"DELETE",  // Удаляет указанный ресурс
+	"OPTIONS", // Возвращает методы HTTP, поддерживаемые сервером
+	"CONNECT", // Преобразует соединение запроса в прозрачный туннель TCP/IP
 }
 
 /**
@@ -60,6 +71,10 @@ func (options *RequestOptions) SetRandUserAgent() {
  * Set request method
  */
 func (options *RequestOptions) SetMethod(method string) {
+	method = strings.ToUpper(method)
+	if !validMethod(method) {
+		panic("Method " + method + " don't exists")
+	}
 	options.method = method
 }
 
@@ -86,6 +101,18 @@ func (options *RequestOptions) SetTimeout(timeout string) {
  */
 func (options *RequestOptions) GetTimeout() time.Duration {
 	return options.timeout
+}
+
+func validMethod(method string) bool {
+	valid := false
+	method = strings.ToUpper(method)
+	for _, v := range methods {
+		if v == method {
+			valid = true
+			break
+		}
+	}
+	return valid
 }
 
 /* Methods *RequestOptions end */

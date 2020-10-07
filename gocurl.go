@@ -31,6 +31,7 @@ func GetCurl() *CurlClient {
  *Инициализация cURL клиента
  */
 func InitCurl(options *RequestOptions) *CurlClient {
+	//if(http.Request.valid)
 	client.Options = options
 	client.requestTime, _ = time.Parse(time.RFC3339, "2006-01-02T15:04:05+07:00")
 	client.result = new(RequestResult)
@@ -95,6 +96,7 @@ func (c *CurlClient) DoRequest(url string) string {
 
 func (c *CurlClient) PrepareRequestParameters() (*http.Request, error) {
 	myReq, err := http.NewRequest(c.Options.GetMethod(), c.url, nil)
+	logger.Debug(myReq.Method)
 	errs.ErrorHandle(err)
 	logger.Debug("REQUEST_HEADERS")
 	myReq.Header.Add("Host", myReq.Host)
