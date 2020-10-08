@@ -9,12 +9,12 @@ import (
 	"time"
 
 	errs "errorshandler"
+	"fmt"
 )
 
 var client = new(CurlClient)
 
 type CurlClient struct {
-	url     string
 	Options *RequestOptions
 	request http.Request
 	result  *RequestResult
@@ -54,9 +54,8 @@ func InitCurl(options *RequestOptions) *CurlClient {
 }
 
 /* CurlClient methods */
-func (c *CurlClient) DoRequest(url string) string {
+func (c *CurlClient) DoRequest() string {
 	c.result.Reset()
-	c.url = url
 	req, err := c.PrepareRequestParameters()
 	errs.ErrorHandle(err)
 
@@ -95,11 +94,22 @@ func (c *CurlClient) DoRequest(url string) string {
 }
 
 func (c *CurlClient) PrepareRequestParameters() (*http.Request, error) {
-	myReq, err := http.NewRequest(c.Options.GetMethod(), c.url, nil)
-	logger.Debug(myReq.Method)
+	myReq, err := http.NewRequest(c.Options.GetMethod(), c.Options.Url, nil)
 	errs.ErrorHandle(err)
+
+	logger.Debug("GET PARAMETERS")
+	query := myReq.URL.Query()
+	for name, value := range c.Options.QueryParams {
+		logger.Debug(name, value)
+		query.Set(name, value)
+	}
+	logger.Debug(myReq.URL)
+	fmt.Println(myReq.URL)
+	logger.Debug(myReq.Method)
+
 	logger.Debug("REQUEST_HEADERS")
 	myReq.Header.Add("Host", myReq.Host)
+
 	logger.Debug("Host", myReq.Host)
 	myReq.Header.Add("User-Agent", c.Options.UserAgent)
 	logger.Debug("User-Agent", c.Options.UserAgent)

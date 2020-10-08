@@ -13,6 +13,7 @@ import (
 type RequestOptions struct {
 	Url            string            //URL запроса
 	method         string            //Метод запроса
+	QueryParams    map[string]string //Параметры GET-запроса
 	PostFields     map[string]string //Параметры POST-запроса
 	CookieFile     string            //Имя файла с Cookies
 	HttpHeaders    map[string]string //Заголовки запроса
@@ -39,6 +40,13 @@ var methods = [7]string{
  */
 func (options *RequestOptions) AddPostField(fieldName string, fieldValue string) {
 	options.PostFields[fieldName] = fieldValue
+}
+
+/**
+ * Adds new param to GET-parameters
+ */
+func (options *RequestOptions) AddQueryParam(parName string, parValue string) {
+	options.QueryParams[parName] = parValue
 }
 
 /**
@@ -125,6 +133,7 @@ func GetOptions() *RequestOptions {
 	options := new(RequestOptions)
 	options.Interval = 0
 	options.PostFields = make(map[string]string)
+	options.QueryParams = make(map[string]string)
 	options.HttpHeaders = make(map[string]string)
 	options.SetRandUserAgent()
 	options.SetTimeout("60s")
